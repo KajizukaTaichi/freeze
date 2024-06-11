@@ -1,0 +1,51 @@
+lang                : program
+
+program             : (statement ";")+
+
+statement           : let_statement
+                    | ass_statement
+                    | func_def_statement
+                    | unit_def_statement
+                    | if_statement
+                    | for_statement
+                    | while_statement
+                    | use_statement
+
+let_statement       : "let" string ":" string "=" eexpr
+
+ass_statement       : string ":" string "=" eexpr
+
+func_def_statement  : "fn" string "(" (string ":" string ",")* ")" ":" program "end"
+
+unit_def_statement  : "unit" string ":" program "end"
+
+if_statement        : "if" eexpr ":" program "fi"
+
+for_statement       : "for" (let_statement | ass_statement) "to" eexpr "skip" eexpr ":" program "next"
+
+while_statement     : "while" eexpr ":" program "done"
+
+use_statement       : "use" string
+
+eexpr               : expr "==" eexpr
+                    | expr "!=" eexpr
+                    | expr "||" eexpr
+                    | expr "&&" eexpr
+                    | expr
+
+epxr                : term "+" epxr
+                    | term "-" epxr
+                    | term
+
+term                : factor "*" term
+                    | factor "/" term
+                    | factor
+
+factor              : "\"" string "\""
+                    | number
+                    | func_call_statement
+                    | variable_call
+
+func_call_statement : (string ".")* string "(" (eexpr ",")* ")"
+
+variable_call       : (string ".")* string
