@@ -23,5 +23,5 @@ struct variable_call_statement;
 namespace qi = boost::spirit::qi;
 using ll = long long;
 using ld = long double;
-using expt_t = std::variant<ll, ld, std::string, func_call_statement>;
+using expr_t = std::variant<ll, ld, std::string, func_call_statement>;
 using unitbody = std::variant<func_def_statement, let_statement, unit_def_statement>;
