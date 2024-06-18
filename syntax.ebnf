@@ -11,6 +11,7 @@ program             : let_statement
                     | while_statement
                     | use_statement
                     | event_statement
+                    | eexpr
 
 let_statement       : "let" string ":" string "=" eexpr
 
@@ -28,26 +29,50 @@ while_statement     : "while" eexpr ":" program "end"
 
 use_statement       : "use" string
 
-event_statement     : "when" variable_call "do" string
+event_statement     : "when" variable_call "do" func_call_statement
 
-eexpr               : expr "==" eexpr
-                    | expr "!=" eexpr
-                    | expr "||" eexpr
-                    | expr "&&" eexpr
+eexpr               : eq
+                    | neq
+                    | or
+                    | and
                     | expr
+                    | gt
+                    | lt
 
-epxr                : term "+" epxr
-                    | term "-" epxr
+eq                  : expr "==" eexpr
+
+neq                 : expr "!=" eexpr
+
+or                  : expr "||" eexpr
+
+and                 : expr "&&" eexpr
+
+gt                  : expr ">" eexpr
+
+lt                  : expr "<" eexpr
+
+epxr                : add
+                    | sub
                     | term
 
-term                : factor "*" term
-                    | factor "/" term
+add                 : term "+" expr
+
+sub                 : term "-" expr
+
+term                : mul
+                    | div
                     | factor
 
-factor              : "\"" string "\""
+mul                 : factor "*" term
+
+div                 : factor "/" term
+
+factor              : str
                     | number
                     | func_call_statement
                     | variable_call
+
+str                 : "\"" string "\""
 
 func_call_statement : (string ".")* string "(" (eexpr ",")* ")"
 
