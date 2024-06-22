@@ -1,4 +1,4 @@
-#include "syntax.hpp"
+#include "structure.hpp"
 #include <boost/spirit/include/qi.hpp>
 #include <string>
 
