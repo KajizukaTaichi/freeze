@@ -1,175 +1,60 @@
-#include "lang.hpp"
+#include "syntax.hpp"
+#include <boost/spirit/include/qi.hpp>
+#include <string>
 
-struct let_statement
+namespace qi = boost::spirit::qi;
+using iter = std::string::iterator;
+using space_t = qi::space_type;
+
+struct parser : public qi::garmmar<iter, frz::program(), space_t>
 {
-    std::string name;
-    std::string type;
-    expr_t expr;
-};
+    // factor member
+    qi::rule<iter, std::string(), space_t> String;
+    qi::rule<iter, std::string(), space_t> String_write;
+    qi::rule<iter, frz::eexpr(), space_t> eexpr_;
+    qi::rule<iter, frz::variable_call_statement(), space_t> variable_call_statement;
+    qi::rule<iter, frz::func_call_statement(), space_t> func_call_statement;
+    qi::rule<iter, frz::factor(), space_t> factor;
 
-struct ass_statement
-{
-    std::string name;
-    std::string type;
-    expr_t expr;
-};
+    // term member
+    qi::rule<iter, frz::mul(), space_t> mul;
+    qi::rule<iter, frz::div(), space_t> div;
+    qi::rule<iter, frz::term(), space_t> term;
 
-struct func_def_statement
-{
-    std::string name;
-    std::vector<std::string> args;
-    std::string rtype;
-    program program;
-};
+    // expr member
+    qi::rule<iter, frz::add(), space_t> add;
+    qi::rule<iter, frz::sub(), space_t> sub;
+    qi::rule<iter, frz::expr(), space_t> expr;
 
-struct unit_def_statement
-{
-    std::string name;
-    unitbody body;
-};
+    // eexpr member
+    qi::rule<iter, frz::eq(), space_t> eq;
+    qi::rule<iter, frz::neq(), space_t> neq;
+    qi::rule<iter, frz::and_expr(), space_t> and_expr;
+    qi::rule<iter, frz::or_expr(), space_t> or_expr;
+    qi::rule<iter, frz::eexpr(), space_t> eexpr;
 
-struct if_statement
-{
-    expr_t expr;
-    program program;
-};
+    // statement member
+    qi::rule<iter, frz::use_statement(), space_t> use_statement;
+    qi::rule<iter, frz::event_statement(), space_t> event_statement;
+    qi::rule<iter, frz::while_statement(), space_t> while_statement;
+    qi::rule<iter, frz::for_statement(), space_t> for_statement;
+    qi::rule<iter, frz::if_statement(), space_t> if_statement;
+    qi::rule<iter, frz::unit_def_statement(), space_t> unit_def_statement;
+    qi::rule<iter, frz::func_def_statement(), space_t> func_def_statement;
+    qi::rule<iter, frz::ass_statement(), space_t> ass_statement;
+    qi::rule<iter, frz::let_statement(), space_t> let_statement;
+    qi::rule<iter, frz::statement(), space_t> statement;
 
-struct for_statement
-{
-    expr_t ass;
-    expr_t end;
-    expr_t skip;
-    program program;
-};
+    // program
+    qi::rule<iter, frz::program(), space_t> program;
 
-struct while_statement
-{
-    expr_t expr;
-    program program;
+    parser() : parser::base_type(program)
+    {
+        String = +(qi::standard::char_);
+        String_write = qi::lit("\"") >> String >> qi::lit("\"");
+        eexpr_ = qi::lit("(") >> eexpr >> qi::lit(")");
+        variable_call_statement = qi::lit("$") >> *(String >> qi::lit(".")) >> String;
+        func_call_statement = *(String >> qi::lit(".")) >> String >> qi::lit("(") >> *(eexpr >> ",") >> qi::lit(")");
+        factor = String | String_write | eexpr_ | variable_call_statement | func_call_statement;
+    }
 };
-
-struct use_statement
-{
-    std::string name;
-};
-
-struct event_statement
-{
-    variable_call_statement var;
-    func_call_statement func;
-};
-
-struct eq
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct neq
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct gt
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct lt
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct or_expr
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct and_expr
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct add
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct sub
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct mul
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct div
-{
-    expr_t lhs;
-    expr_t rhs;
-};
-
-struct factor
-{
-    std::variant<str, ll, ld, func_call_statement, variable_call_statement> value;
-};
-
-struct func_call_statement
-{
-    std::vector<std::string> namespaces;
-    std::string name;
-    std::vector<expr_t> args;
-};
-
-struct variable_call_statement
-{
-    std::vector<std::string> namespaces;
-    std::string name;
-};
-
-struct str
-{
-    std::string value;
-};
-
-struct eexpr
-{
-    std::variant<eq, neq, or_expr, and_expr, gt, lt, expr> value;
-};
-
-struct expr
-{
-    std::variant<add, sub, term> value;
-};
-
-struct term
-{
-    std::variant<mul, div, factor> value;
-};
-
-struct program
-{
-    std::vector<std::variant<
-        let_statement,
-        ass_statement,
-        func_def_statement,
-        unit_def_statement,
-        if_statement,
-        for_statement,
-        while_statement,
-        use_statement,
-        event_statement,
-        eexpr
-    >> statements;
-};
-
