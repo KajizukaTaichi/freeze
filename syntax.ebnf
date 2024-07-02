@@ -1,79 +1,146 @@
-lang                : program
+lang                    : program
 
-program             : (statement ";")+
+program                 : statement_group+
 
-program             : let_statement
-                    | ass_statement
-                    | func_def_statement
-                    | unit_def_statement
-                    | if_statement
-                    | for_statement
-                    | while_statement
-                    | use_statement
-                    | event_statement
-                    | eexpr
+statement_group         : statement ";"
 
-let_statement       : "let" string ":" string "=" eexpr
+?statement              : for_statement
+                        | while_statement
+                        | if_statement
+                        | use_statement
+                        | include_statement
+                        | function_def
+                        | unit_def
+                        | return_statement
+                        | try_statement
+                        | comment_statement
+                        | math_expr
 
-ass_statement       : string ":" string "=" eexpr
+for_statement           : "for" math_expr "to" math_expr skip_statement ":" program "end"
 
-func_def_statement  : "fn" string "(" (string ",")* ")" "->" string ":" program "end"
+while_statement         : "while" math_expr ":" program "end"
 
-unit_def_statement  : "unit" string ":" (func_def_statement | let_statement)+ "end"
+if_statement            : "if" math_expr ":" program "end"
 
-if_statement        : "if" eexpr ":" program "end"
+use_statement           : "use" name
 
-for_statement       : "for" eexpr "to" eexpr "skip" eexpr ":" program "end"
+include_statement       : "include" name
 
-while_statement     : "while" eexpr ":" program "end"
+function_def            : ind "fn" name "(" arg_def ")" name ":" program "end"
 
-use_statement       : "use" string
+unit_def                : "unit" name ":" program "end"
 
-event_statement     : "when" variable_call "do" func_call_statement
+arg_def                 : argd_e*
 
-eexpr               : eq
-                    | neq
-                    | or
-                    | and
-                    | expr
-                    | gt
-                    | lt
+argd_e                  : name ":" name ","
 
-eq                  : expr "==" eexpr
+return_statement        : "return" math_expr
 
-neq                 : expr "!=" eexpr
+try_statement           : "try" program "catch" math_expr ":" program "end"
 
-or                  : expr "||" eexpr
+ind                     : ["ind"]
 
-and                 : expr "&&" eexpr
+comment_statement       : "//" string
 
-gt                  : expr ">" eexpr
+skip_statement          : ["skip" math_expr]
 
-lt                  : expr "<" eexpr
+?math_expr              : assignment
+                        | add_ca
+                        | sub_ca
+                        | mul_ca
+                        | div_ca
+                        | sur_ca
+                        | ao_expr
 
-epxr                : add
-                    | sub
-                    | term
+assignment              : math_expr ":" name "=" ao_expr
 
-add                 : term "+" expr
+add_ca                  : math_expr "+=" ao_expr
 
-sub                 : term "-" expr
+sub_ca                  : math_expr "-=" ao_expr
 
-term                : mul
-                    | div
-                    | factor
+mul_ca                  : math_expr "*=" ao_expr
 
-mul                 : factor "*" term
+div_ca                  : math_expr "/=" ao_expr
 
-div                 : factor "/" term
+sur_ca                  : math_expr "%=" ao_expr
 
-factor              : str
-                    | number
-                    | func_call_statement
-                    | variable_call
+?ao_expr                : and_expr
+                        | or_expr
+                        | ene_expr
 
-str                 : "\"" string "\""
+and_expr                : ao_expr "and" ene_expr
 
-func_call_statement : (string ".")* string "(" (eexpr ",")* ")"
+or_expr                 : ao_expr "or" ene_expr
 
-variable_call       : (string ".")* string
+ene_expr                : eq
+                        | neq
+                        | gl_expr
+
+eq                      : ene_expr "==" gl_expr
+
+neq                     : ene_expr "!=" gl_expr
+
+?gl_expr                : gt
+                        | lt
+                        | geq
+                        | leq
+                        | as_expr
+
+gt                      : gl_expr ">" as_expr
+
+lt                      : gl_expr "<" as_expr
+
+geq                     : gl_expr ">=" as_expr
+
+leq                     : gl_expr "<=" as_expr
+
+?as_expr                : add
+                        | sub
+                        | md_expr
+
+add                     : as_expr "+" md_expr
+
+sub                     : as_expr "-" md_expr
+
+?md_expr                : mul
+                        | div
+                        | sur
+                        | base_expr
+
+mul                     : md_expr "*" base_expr
+
+div                     : md_expr "/" base_expr
+
+sur                     : md_expr "%" base_expr
+
+?base_expr              : number
+                        | string
+                        | name
+                        | not_expr
+                        | data_expr
+                        | function_call
+                        | variable_call
+
+number                  : SIGNED_NUMBER
+
+string                  : "\"" WORD "\""
+
+name                    : CNAME
+
+function_call           : name "(" arg_call ")"
+
+variable_call           : "$" name
+
+arg_call                : argc_e*
+
+argc_e                  : math_expr ","
+
+data_expr               : eexpr_
+
+eexpr_                  : "(" math_expr ")"
+
+%import common.WORD
+%import common.CNAME
+%import common.SIGNED_NUMBER
+%import common.WS
+%ignore WS
